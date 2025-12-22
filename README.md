@@ -2,9 +2,11 @@
 
 Quick guideline to download Kaggle datasets using the API (with Pipenv).
 
+
 ## Prerequisites
 - Python environment managed with **Pipenv**
 - A valid Kaggle API token configured
+
 
 ## Steps
 1. Make sure you have the required dependencies:
