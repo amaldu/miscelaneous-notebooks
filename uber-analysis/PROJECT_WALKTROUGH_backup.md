@@ -4,99 +4,260 @@ Here I explain the step-by-step logic and workflow followed in this machine lear
 
 The goal of the project is to predict Uber ride cancellations using machine learning to enable proactive intervention by creating strategies to reduce the overall cancellation rate.
 
-# Problem Framing
-## 1.1 Defininition of the objective in business terms
+---
 
-Looking at the Uber ride data from 2024, I identified a critical operational challenge, 37.430 rides out of 148.770 the total bookings never reached completion. 
+## Problem Framing
 
-This means that the 25% (37.430 rides) of all bookings end in cancellation of which a 19.15% (27.000 rides) are made by customers and 7.45% (10.500 rides) are made by drivers. This as a result, means that for every 4 ride requests, 1 fails to complete. 
+### 1.1 Define the objective in business terms
 
-In terms of business impact, I can think of the following areas:
+#### The Business Problem: Understanding the Scale
 
-1. Financial impact:
-   1. Revenue loss: the dataset does not provide the ride prices but from my experience, if I estimate an averange booking value of 20$ per ride without taking into consideration the type of vehicle, the 37.430 cancelled rides represent 748.600$ in lost revenue in 2024. 
-   2. Hidden operational costs: there are other costs like the time and fuel wasted by drivers while the ride is not cancelled yet, the costs of the processing platform (servers, computations, payment platform usage) and the potential churn of those frustrated customers.
-   3. Opportunity cost: every cancellation activates resources within the company that also have a cost, some examples can be contacting customer supports, making refunds, managing complains, etc. They cost money that could be invested in other areas to promote the growth of the company.
+Looking at the Uber ride data from 2024, I identified a critical operational challenge: **25% of all bookings end in cancellation**. Out of 148,770 total bookings, 37,430 rides never reached completion This isn't just a number—it represents a systemic issue that ripples acros.s the entire business ecosystem.
 
-2. Operational impact:
-   1. Imbalance in supply and demand: when drivers are removed from the pool of available services while they are on their way to pick up the customer. If the price per ride depends on the amount of available drivers, this can artificially increase the price of the available services and potentially damaging the image of the company. 
-   2. Driver insatisfaction: drivers are also consuming Uber's service and they also become frustrated and potentially change their providers if the customer is cancelling their rides too often. 
-   
-Let's imagine that Uber wants to reduce the cancellation rate by 10%, this means 3.700 more rides completed and almost 75000$ recovered so building a predictive model that identifies bookings with high cancellation risk at the time of booking could help achieving it.
+Breaking this down further:
+- **Customer-initiated cancellations**: 27,000 rides (19.15% of all bookings)
+- **Driver-initiated cancellations**: 10,500 rides (7.45% of all bookings)
 
-## 1.2 How will the solution be used?
+This means that for every 4 ride requests, 1 fails to complete. In a business built on reliability and convenience, this represents a significant gap between customer expectations and service delivery.
 
-The model will be deployed as a real-time prediction system integrated into Uber's booking workflow so when a customer requests a ride, the model will score the cancellation probability.
+#### Financial Impact: The True Cost of Cancellations
 
-This will help other parts of the company to develop and implement long-term fixes like:
+The financial impact of cancellations extends far beyond the obvious lost fare revenue:
 
-- Increase customer engagement in high-risk rides: send confirmation messages, increase ETA updates, create loyalty points, etc. 
-- Cluster and route drivers: based on their experience in completion and ratings, Uber can send drivers to higher risk rides.
+**1. Direct Revenue Loss**
+If I estimate an average booking value of $20 per ride (considering the mix of Auto, eBike, Go Sedan, and Premier options), the 37,430 cancelled bookings represent approximately **$748,600 in unrealized revenue** annually. Even a modest 10% reduction in cancellations would recover ~$75,000.
 
-All those techniques can also be monitored accross time and regions to better understand issues in their implementation and evolution over time.
+**2. Hidden Operational Costs**
+- *Driver idle time*: When a driver accepts a ride and travels toward the pickup location, only to have the ride cancelled, they've invested time and fuel with no compensation. With an average VTAT (Vehicle Time to Arrival) of several minutes, thousands of driver-hours are wasted annually.
+- *Platform processing costs*: Every booking—completed or not—consumes server resources, payment processing capacity, and algorithmic matching computation.
+- *Customer acquisition waste*: Acquiring a new customer costs significantly more than retaining an existing one. When cancellations lead to customer churn, the marketing investment in that customer is lost.
 
-## 1.3 What are the current solutions/workarounds (if any)?
+**3. Opportunity Cost**
+Resources spent managing cancellations (customer support, driver complaints, refund processing) could instead be invested in growth initiatives, new features, or market expansion.
 
-Neither the metadata nor the dataset provide any other information about different approaches previously taken by the company.
+#### Operational Impact: How Cancellations Disrupt the System
 
-## 1.4 How should the problem be framed
+Cancellations don't just affect individual transactions—they create cascading effects across operations:
 
-I'm going to start framing it as a supervised binary classification problem: cancelled vs. completed even though in future approaches it would be interesting to try a multi-class approach: cancelled by customer / driver vs. completed vs. incompleted if business value is demonstrated. 
+**1. Supply-Demand Imbalance**
+When a driver is dispatched to a ride that gets cancelled, they're temporarily removed from the available pool. This creates artificial scarcity, potentially triggering surge pricing in areas where supply would otherwise be adequate. The result: customers pay more, and the platform's pricing accuracy suffers.
 
-The training will be offline on historical batch data I would plan to re-train it daily and monitor concept drift to check if concept drift requires faster adaptation and we have to change to near-online or online training.
+**2. Driver Allocation Inefficiency**
+The matching algorithm optimizes for the current state of supply and demand. Cancellations introduce noise into this optimization, leading to suboptimal driver positioning and longer wait times for subsequent customers.
 
-The inference will be in real time when booking happens. 
+**3. Predictability Challenges**
+Operations planning—from driver incentives to demand forecasting—relies on historical completion rates. High cancellation rates introduce uncertainty that makes it harder to staff appropriately, set accurate ETAs, and manage driver earnings expectations.
 
-## 1.5 How should performance be measured?
+#### Stakeholder Value: Who Benefits from Solving This Problem?
 
-The dataset shows that we have a cancellation rate of 25%, which is moderately imbalanced so I need metrics that go beyond simple accuracy. 
+A cancellation prediction model creates value for every participant in the Uber ecosystem:
 
-Here you can find a cost matrix applied to the concrete business scenarios that I defined after having conversations with product or the Ops team in order to measure the net business cost of every possible outcome:
+**For Customers:**
+- *Improved reliability*: Knowing that their ride is more likely to be completed builds trust in the platform
+- *Reduced frustration*: Proactive interventions (like confirming driver arrival or offering incentives to wait) address concerns before they lead to cancellation
+- *Better experience*: Accurate ETAs and responsive service create loyalty
 
-| Outcome | What happens | Cost/Benefit | Business Meaning |
+**For Drivers:**
+- *Higher earnings per hour*: Less time wasted on cancelled rides means more time completing paid trips
+- *Reduced frustration*: Fewer cancellations means fewer negative interactions and wasted fuel
+- *Fairer workload*: Smart assignment can route high-risk bookings to experienced drivers who handle them better, while protecting newer drivers from discouraging early experiences
+
+**For Uber (The Company):**
+- *Revenue recovery*: Directly preventing cancellations recovers lost revenue
+- *Competitive advantage*: Higher completion rates differentiate the platform from competitors
+- *Data-driven operations*: Prediction capabilities can extend to other areas (demand forecasting, pricing optimization, fraud detection)
+- *Improved metrics*: Better completion rates improve investor confidence and market positioning
+
+#### Strategic Positioning: From Reactive to Proactive Operations
+
+Currently, the approach to cancellations is **reactive**: cancellations are recorded after they happen, reasons are logged, and penalties may be applied. This approach treats symptoms rather than causes.
+
+My predictive model enables a **proactive** approach:
+
+| Reactive (Current) | Proactive (With Prediction) |
+|-------------------|----------------------------|
+| Record cancellation after it happens | Identify high-risk bookings at request time |
+| Apply penalties post-cancellation | Intervene before cancellation occurs |
+| Analyze patterns quarterly | Act on patterns in real-time |
+| Treat all bookings equally | Differentiate by risk level |
+| Customer complains, then we respond | We address concerns before customer acts |
+
+This shift from reactive to proactive operations represents a fundamental change in how the platform manages reliability—moving from damage control to prevention.
+
+#### The Solution: What I Will Build
+
+To address this business challenge, I will build a **machine learning classification model** that predicts the probability of cancellation at the moment a booking is created.
+
+**What the model does:**
+- Takes booking characteristics as input (vehicle type, pickup/drop locations, time of day, estimated wait time, payment method, etc.)
+- Outputs a cancellation probability score (0-100%)
+- Flags high-risk bookings (e.g., >70% probability) for intervention
+
+**How predictions translate into action:**
+1. *High-risk bookings* → Trigger proactive customer engagement (confirmation messages, small incentives)
+2. *Driver assignment optimization* → Route high-risk bookings to experienced drivers with strong completion rates
+3. *Real-time monitoring* → Dashboard alerts when cancellation risk spikes in specific areas or times
+4. *Strategic insights* → Identify systemic issues (problematic locations, peak risk times) for long-term fixes
+
+**Expected Outcomes:**
+- Primary target: **10% reduction in cancellation rate** (from 25% to 22.5%)
+- This translates to approximately **3,700 saved rides annually**
+- Estimated revenue recovery: **~$75,000/year**
+- Secondary benefits: improved customer satisfaction, higher driver retention, better operational efficiency
+
+### 1.2 How will your solution be used?
+
+The solution will be deployed as a **real-time prediction system** integrated into Uber's booking workflow:
+
+**Primary Use Cases**:
+
+1. **Risk Scoring at Booking Time**: When a customer requests a ride, the model scores the cancellation probability. High-risk bookings (>70% probability) trigger interventions.
+
+2. **Proactive Customer Engagement**: 
+   - Send confirmation messages to high-risk bookings
+   - Offer small discounts or loyalty points to encourage ride completion
+   - Provide more accurate ETA updates to reduce "Driver Not Moving" cancellations
+
+3. **Smart Driver Assignment**:
+   - Assign experienced drivers with higher completion rates to high-risk bookings
+   - Avoid assigning drivers with history of cancellations to sensitive routes
+
+4. **Operational Dashboard**:
+   - Real-time monitoring of cancellation risk across regions
+   - Daily/weekly reports for operations managers
+   - Identify systemic issues (e.g., specific locations with high cancellation rates)
+
+5. **Post-Hoc Analysis**:
+   - Understand cancellation patterns for strategic planning
+   - Identify training needs for drivers
+   - Optimize pricing and surge strategies
+
+### 1.3 What are the current solutions/workarounds (if any)?
+
+Based on the dataset context, the current approach appears to be **reactive rather than proactive**:
+
+**Current State**:
+- Cancellations are recorded after they occur with reason codes
+- No predictive intervention exists
+- Customer and driver cancellation reasons are logged but not used for prevention
+- Ratings are collected post-ride but not used to predict future behavior
+
+**Existing Workarounds**:
+- **Cancellation Fees**: Customers may be charged for cancellations (deterrent, not prevention)
+- **Driver Penalties**: Drivers with high cancellation rates may face account restrictions
+- **Manual Escalation**: Customer support handles complaints reactively
+
+**Gaps in Current Approach**:
+- No early warning system for at-risk bookings
+- No differentiation between high-risk and low-risk bookings at dispatch time
+- Limited use of historical patterns for prediction
+
+### 1.4 How should you frame this problem?
+
+This is a **supervised binary classification problem**:
+
+**Problem Type**: Classification
+- **Target Variable**: Booking cancelled (1) vs. Booking completed (0)
+- **Learning Type**: Supervised (we have labeled historical data)
+- **Prediction Type**: Offline training, online inference
+
+**Classification Breakdown**:
+
+| Category | Value |
+|----------|-------|
+| Completed Rides | 65.96% (93,000 rides) |
+| Customer Cancellations | 19.15% (27,000 rides) |
+| Driver Cancellations | 7.45% (10,500 rides) |
+| Other (Incomplete) | ~7.44% |
+
+**Framing Considerations**:
+
+1. **Binary vs. Multi-class**: 
+   - Simple approach: Binary (Cancelled vs. Completed)
+   - Advanced approach: Multi-class (Completed, Customer Cancelled, Driver Cancelled, Incomplete)
+   - **Recommendation**: Start with binary, then extend to multi-class if business value is demonstrated
+
+2. **Online vs. Offline**:
+   - **Offline Training**: Model trained on historical batch data
+   - **Online Inference**: Predictions made in real-time at booking
+   - Future consideration: Online learning to adapt to changing patterns
+
+3. **Class Imbalance**:
+   - Cancellation rate is 25%, which is moderately imbalanced
+   - Will require techniques like SMOTE, class weights, or threshold tuning
+
+### 1.5 How should performance be measured?
+
+Choosing the right performance metrics is one of the most critical decisions in this project. The wrong metric can lead to a model that looks good on paper but fails to deliver business value—or worse, one that actively harms operations. In this section, I explain my reasoning for each metric choice and justify why I prioritize certain outcomes over others.
+
+#### Understanding Classification Outcomes in Business Terms
+
+Before diving into metrics, I need to translate the abstract confusion matrix into concrete business scenarios. For a cancellation prediction model, each prediction outcome has a specific meaning and cost:
+
+| Prediction | Actual Outcome | Technical Term | Business Meaning |
 |------------|----------------|----------------|------------------|
-| True Positive (TP) | Ride is Cancelled & System intervenes | +$15 benefit | Prevented cancellation saves ~$20 revenue, minus ~$5 intervention cost |
-| False Positive (FP) | Ride is NOT Cancelled & System intervenes | -$5 cost | Unnecessary intervention (incentive + operational time) |
-| True Negative (TN) | Ride is NOT Cancelled & System does NOT intervene | $0 | Normal operation, no action needed |
-| False Negative (FN) | Ride is Cancelled & System does NOT intervene | -$20 cost | Lost booking revenue + customer dissatisfaction + driver wasted time |
+| "Will Cancel" | Actually Cancelled | **True Positive (TP)** | Correct alert → Intervention opportunity |
+| "Will Cancel" | Actually Completed | **False Positive (FP)** | False alarm → Unnecessary intervention cost |
+| "Won't Cancel" | Actually Completed | **True Negative (TN)** | Correct non-alert → Normal operation |
+| "Won't Cancel" | Actually Cancelled | **False Negative (FN)** | Missed cancellation → Lost revenue + poor experience |
 
-**Key insight here: The cost asymmetry is approximately 4:1!**
+**Visualizing the confusion matrix for this problem:**
 
-A missed cancellation (FN) costs $20, while a false alarm (FP) costs $5. This means that I should be willing to accept up to 4 false alarms to catch 1 additional cancellation.
+```
+                        ACTUAL OUTCOME
+                    Cancelled    Completed
+                  ┌────────────┬────────────┐
+PREDICTED    Yes  │     TP     │     FP     │
+"Will Cancel"     │  Caught!   │ False Alarm│
+                  ├────────────┼────────────┤
+             No   │     FN     │     TN     │
+"Won't Cancel"    │  Missed!   │  Correct   │
+                  └────────────┴────────────┘
+```
 
-This problem requires of metrics that give importance to the balance between catching cancellations (recall) with not overwhelming operations with false alarms (precision).
+With 37,430 cancellations out of 148,770 bookings, a model that predicts "won't cancel" for everything would be 75% accurate—but completely useless. This is why I need metrics that go beyond simple accuracy.
+
+#### The Precision-Recall Trade-off: Why I Can't Maximize Both
+
+In classification problems, there's an inherent tension between precision and recall:
 
 - **Recall** = TP / (TP + FN) = "Of all actual cancellations, what % did I catch?"
 - **Precision** = TP / (TP + FP) = "Of all my cancellation predictions, what % were correct?"
 
-These metrics have trade-offs because:
-- If I want to catch MORE cancellations (increase recall), I will end up catching more false alarms (precision)
-- If I want FEWER false alarms (increase precision), I will end up missing more cancellations (lower recall)
-  
-I need to find the right balance—and that balance depends on the **net business costs** of each type of error.
+The trade-off works like this:
+- If I want to catch MORE cancellations (higher recall), I need to cast a wider net → more false alarms (lower precision)
+- If I want FEWER false alarms (higher precision), I need to be more selective → miss more cancellations (lower recall)
 
-**Calculations**
+**Why this matters for my problem:**
 
-*Precision*: 
+Consider two extreme strategies:
 
-If I intervene on a predicted cancellation:
-- Expected benefit if correct (probability = precision): Save $20
-- Expected cost if wrong (probability = 1 - precision): Waste $5
+*Strategy A: Maximize Recall (predict "will cancel" for everyone)*
+- Recall = 100% (I catch every cancellation)
+- Precision = 25% (only 1 in 4 predictions is correct)
+- Result: Operations team is overwhelmed with 148,770 alerts, 75% of which are wrong
 
-```
-Precision × $20 = (1 - Precision) × $5
-20P = 5 - 5P → 25P = 5 → P = 0.20
-```
+*Strategy B: Maximize Precision (only predict when 99% certain)*
+- Precision = ~95% (almost every prediction is correct)
+- Recall = ~10% (I only catch 3,700 of 37,430 cancellations)
+- Result: Model is rarely wrong, but misses 90% of cancellations
 
-So every decision above 20% generates positive value BUT the business value here is also important. For example, the operational capacity, the customer experice or the credibility are also factors that are important to take into consideration and are not measured here. In order to give a valuable increase that protects these factors I will increase Precision to the 50% (every second ride).
+Neither extreme is acceptable. I need to find the right balance—and that balance depends on the **costs** of each type of error.
 
-*Recall*:
+#### Cost-Sensitive Metric Selection: Assigning Dollar Values
 
-Given the asymmetry in the cost (FN is way more expensive than FP), I will prioritize recall over precision. Having 37.430 cancellations, let's calculate:
+To make a principled decision about the precision-recall trade-off, I assign estimated costs to each outcome:
 
-- At 60% recall: Catch 22,458 → Miss 14,972 → $299,440 in preventable losses
-- At 70% recall: Catch 26,201 → Miss 11,229 → $224,580 in preventable losses
-- At 80% recall: Catch 29,944 → Miss 7,486 → $149,720 in preventable losses
+| Outcome | Cost/Benefit | Reasoning |
+|---------|--------------|-----------|
+| **True Positive** | +$15 benefit | Prevented cancellation saves ~$20 revenue, minus ~$5 intervention cost |
+| **True Negative** | $0 | Normal operation, no action needed |
+| **False Positive** | -$5 cost | Unnecessary intervention (incentive + operational time) |
+| **False Negative** | -$20 cost | Lost booking revenue + customer dissatisfaction + driver wasted time |
+
+**Key insight: The cost asymmetry is approximately 4:1**
+
+A missed cancellation (FN) costs ~$20, while a false alarm (FP) costs ~$5. This asymmetry is crucial—it means I should be willing to accept up to 4 false alarms to catch 1 additional cancellation.
 
 **Deriving the break-even precision:**
 
@@ -113,44 +274,330 @@ Solving: `20P = 5 - 5P` → `25P = 5` → `P = 0.20`
 2. Customer experience: Too many unnecessary messages annoy customers
 3. Credibility: A system that's wrong half the time loses trust
 
+#### Why I Prioritize Recall: The Business Case
+
+Given the cost asymmetry, I consciously prioritize recall over precision. But unlike precision (where I derived a 20% break-even threshold), recall requires a different approach. Let me derive the optimal recall target from the data and business constraints.
+
+**1. The Recall Optimization Problem**
+
+**Recall Formula:**
+
+$$\text{Recall} = \frac{TP}{TP + FN}$$
+
+Where:
+- **TP (True Positives)** = Cancellations I correctly predicted (caught)
+- **FN (False Negatives)** = Cancellations I failed to predict (missed)
+- **TP + FN** = Total actual cancellations = **37,430** (from dataset)
+
+The question is: **What recall level should I target?**
+
+Unlike precision, recall doesn't have a natural "break-even" point. More recall is always better in isolation. However, there are three constraints that help me derive a target:
+
+1. **The precision-recall trade-off** (higher recall → lower precision)
+2. **Operational capacity** (how many interventions can we handle?)
+3. **Minimum ROI requirement** (what savings justify the project?)
+
+**2. Deriving Recall from Operational Capacity**
+
+Let's say the operations team can handle a maximum of **N interventions** per year. This directly constrains recall.
+
+**The math:**
+
+Total predictions flagged as "will cancel" = TP + FP (True Positives + False Positives)
+
+From the precision formula:
+$$\text{Precision} = \frac{TP}{TP + FP}$$
+
+Rearranging:
+$$TP + FP = \frac{TP}{\text{Precision}}$$
+
+If I target 60% precision and want to catch TP cancellations:
+$$\text{Total Interventions} = \frac{TP}{0.60}$$
+
+**Example calculation:**
+
+If operational capacity is **50,000 interventions/year** and I target 60% precision:
+
+$$TP = \text{Total Interventions} \times \text{Precision} = 50,000 \times 0.60 = 30,000$$
+
+$$\text{Recall} = \frac{TP}{37,430} = \frac{30,000}{37,430} = 0.801 = 80.1\%$$
+
+**Capacity-constrained recall targets:**
 
 
 
+| Operational Capacity | At 60% Precision | Max TP Catchable | Max Recall |
+|---------------------|------------------|------------------|------------|
+| 30,000 interventions | 30,000 × 0.60 | 18,000 | 48.1% |
+| 40,000 interventions | 40,000 × 0.60 | 24,000 | 64.1% |
+| 50,000 interventions | 50,000 × 0.60 | 30,000 | 80.1% |
+| 60,000 interventions | 60,000 × 0.60 | 36,000 | 96.2% |
 
+**My assumption:** With automated interventions (messages, small incentives), capacity is approximately **40,000-50,000 interventions/year**, giving a feasible recall range of **64-80%**.
 
+**3. Deriving Recall from Minimum ROI Requirement**
 
+The project needs to generate enough savings to justify its existence. Let me work backwards from a minimum ROI target.
 
+**Cost structure:**
+- Cost per missed cancellation (FN): **$20**
+- Cost per false alarm (FP): **$5**
+- Intervention success rate: **50%** (only half of caught cancellations are actually prevented)
 
+**Revenue at risk:**
+$$\text{Total Revenue at Risk} = 37,430 \times \$20 = \$748,600$$
 
-1. Event : Cancellation
-   The customer receives incentive, the company has the reassign the driver wherever he is, 
-Before training any model, I define minimum acceptable recall and precision based on business cost and operational constraints.
-**Primary Metrics**:
+**Expected savings formula:**
 
-1. Recall (Sensitivity) % of actual cancellations correctly predicted | ≥ 70% |
-| **Precision** | % of predicted cancellations that were actual cancellations | ≥ 60% |
-| **F1-Score** | Harmonic mean of precision and recall | ≥ 0.65 |
-| **AUC-ROC** | Model's ability to distinguish between classes | ≥ 0.75 |
+$$\text{Savings} = TP \times \$20 \times 0.50 - FP \times \$5$$
 
-**Why Recall is Prioritized**:
-- Missing a cancellation (False Negative) means lost revenue and poor customer experience
-- A false alarm (False Positive) only costs a proactive message or incentive
-- The cost of intervention is lower than the cost of cancellation
+Where:
+- $TP \times \$20 \times 0.50$ = Revenue saved from caught cancellations (with 50% success rate)
+- $FP \times \$5$ = Cost of false alarms
 
-**Secondary Metrics**:
-- **Precision-Recall AUC**: Better for imbalanced datasets
-- **Confusion Matrix**: Detailed breakdown of prediction types
-- **Lift Chart**: Business value of model vs. random selection
+**Calculating FP from TP and Precision:**
 
-**Business KPIs to Track**:
-- Overall cancellation rate reduction
-- Revenue recovered from prevented cancellations
-- Customer satisfaction scores
-- Driver utilization improvement
-- 
-- We model business cost assuming that missing a cancellation (FN) is 5x more costly than triggering an unnecessary intervention (FP). This assumption was validated with product and ops teams and tested via sensitivity analysis.
+$$FP = TP \times \frac{1 - \text{Precision}}{\text{Precision}}$$
 
-## 1.6 Is the performance measure aligned with the business objective?
+At 60% precision: $FP = TP \times \frac{0.40}{0.60} = TP \times 0.667$
+
+**Net savings formula (at 60% precision):**
+
+$$\text{Net Savings} = TP \times \$20 \times 0.50 - (TP \times 0.667) \times \$5$$
+$$= TP \times \$10 - TP \times \$3.33$$
+$$= TP \times \$6.67$$
+
+**Minimum viable recall calculation:**
+
+If the project requires minimum **$50,000 annual savings** to be viable:
+
+$$TP \times \$6.67 \geq \$50,000$$
+$$TP \geq 7,496$$
+$$\text{Recall} = \frac{7,496}{37,430} \geq 20.0\%$$
+
+If the project targets **$100,000 annual savings**:
+
+$$TP \geq \frac{\$100,000}{\$6.67} = 14,993$$
+$$\text{Recall} = \frac{14,993}{37,430} \geq 40.0\%$$
+
+If the project targets **$150,000 annual savings**:
+
+$$TP \geq \frac{\$150,000}{\$6.67} = 22,489$$
+$$\text{Recall} = \frac{22,489}{37,430} \geq 60.1\%$$
+
+**ROI-driven recall targets:**
+
+| Target Annual Savings | Required TP | Required Recall | At 60% Precision |
+|----------------------|-------------|-----------------|------------------|
+| $50,000 (minimum viable) | 7,496 | 20.0% | 12,493 interventions |
+| $100,000 (good) | 14,993 | 40.0% | 24,988 interventions |
+| $150,000 (target) | 22,489 | 60.1% | 37,482 interventions |
+| $200,000 (stretch) | 29,985 | 80.1% | 49,975 interventions |
+
+**4. Combining Constraints to Set Final Targets**
+
+Now I can set data-driven targets by combining all constraints:
+
+| Constraint | Derived Recall Range | Limiting Factor |
+|------------|---------------------|-----------------|
+| Break-even (minimum useful) | ≥ 20% | Below this, savings don't cover costs |
+| Operational capacity | ≤ 80% | At 50K interventions with 60% precision |
+| Target ROI ($150K savings) | ≥ 60% | Business case requirement |
+
+**My final targets:**
+
+$$\text{Minimum Recall} = 60\% \text{ (to achieve target ROI of \$150K)}$$
+$$\text{Target Recall} = 70\% \text{ (balances ROI with operational feasibility)}$$
+$$\text{Stretch Recall} = 80\% \text{ (approaches operational capacity limit)}$$
+
+**5. Validating the 70% Target**
+
+Let me verify that 70% recall with 60% precision is achievable and valuable:
+
+**At 70% Recall, 60% Precision:**
+
+$$TP = 0.70 \times 37,430 = 26,201 \text{ cancellations caught}$$
+$$FP = 26,201 \times \frac{0.40}{0.60} = 17,467 \text{ false alarms}$$
+$$\text{Total Interventions} = 26,201 + 17,467 = 43,668$$
+
+**Financial impact:**
+$$\text{Savings} = 26,201 \times \$20 \times 0.50 = \$262,010 \text{ (gross)}$$
+$$\text{False Alarm Cost} = 17,467 \times \$5 = \$87,335$$
+$$\text{Net Savings} = \$262,010 - \$87,335 = \$174,675$$
+
+**Validation checks:**
+- ✅ Total interventions (43,668) < Operational capacity (50,000)
+- ✅ Net savings ($174,675) > Target ROI ($150,000)
+- ✅ Precision (60%) > Break-even precision (20%)
+
+The 70% recall target is **data-justified and operationally feasible**.
+
+**6. Summary: Revenue Impact by Recall Level**
+
+| Recall | TP (Caught) | FN (Missed) | FP (False Alarms) | Interventions | Gross Savings | FP Cost | Net Savings |
+|--------|-------------|-------------|-------------------|---------------|---------------|---------|-------------|
+| 50% | 18,715 | 18,715 | 12,477 | 31,192 | $187,150 | $62,385 | $124,765 |
+| 60% | 22,458 | 14,972 | 14,972 | 37,430 | $224,580 | $74,860 | $149,720 |
+| **70%** | **26,201** | **11,229** | **17,467** | **43,668** | **$262,010** | **$87,335** | **$174,675** |
+| 80% | 29,944 | 7,486 | 19,963 | 49,907 | $299,440 | $99,815 | $199,625 |
+
+*Assumptions: 60% precision, $20 cost per FN, $5 cost per FP, 50% intervention success rate*
+
+**7. Customer Experience Asymmetry**
+
+Beyond the financial math, there's a qualitative asymmetry:
+
+- A customer whose cancellation was prevented (through a timely message or incentive) has a **positive experience**
+- A customer who cancels and has a bad experience may **churn permanently**
+- A customer who receives an unnecessary "we're confirming your ride" message has a **neutral-to-slightly-positive experience**
+
+The downside of false positives is much smaller than the downside of false negatives, which further supports prioritizing recall.
+
+**8. Intervention Scalability**
+
+My capacity assumption of 50,000 interventions is conservative because modern interventions can be automated:
+- Automated confirmation messages: Near-zero marginal cost
+- Small loyalty point credits: $1-2 per intervention
+- Priority driver assignment: Algorithmic, no human cost
+
+If interventions are fully automated, capacity could increase to 100,000+, enabling even higher recall targets.
+
+#### My Target Metrics and Justifications
+
+Based on the analysis above, I set the following targets:
+
+| Metric | Target | Minimum | Justification |
+|--------|--------|---------|---------------|
+| **Recall** | ≥ 70% | 60% | Catch majority of cancellations; each 10% improvement saves ~$75K |
+| **Precision** | ≥ 60% | 50% | Well above break-even (20%); respects operational capacity |
+| **F1-Score** | ≥ 0.65 | 0.55 | Ensures neither metric is sacrificed entirely for the other |
+| **AUC-ROC** | ≥ 0.75 | 0.70 | Model must significantly outperform random guessing (0.50) |
+
+**Why F1-Score as a summary metric:**
+
+The F1-Score is the harmonic mean of precision and recall: `F1 = 2 × (P × R) / (P + R)`
+
+I chose F1 because:
+1. It penalizes extreme imbalances (you can't get a high F1 by sacrificing one metric)
+2. It's bounded between 0 and 1, making it easy to interpret
+3. It's widely used, making my results comparable to other studies
+
+However, F1 treats precision and recall equally. Given my cost asymmetry, I might consider **F2-Score** (which weights recall higher) in future iterations:
+`F2 = 5 × (P × R) / (4P + R)`
+
+#### Threshold Selection: Why 0.5 Probability Is Not Optimal
+
+Most classification models output a probability (0-1), and we convert this to a binary prediction using a threshold. The default threshold of 0.5 ("predict cancellation if probability > 50%") is rarely optimal for cost-asymmetric problems.
+
+**Finding the optimal threshold:**
+
+Given my cost structure (FN costs 4× more than FP), the optimal threshold should be lower than 0.5 to catch more cancellations. The theoretical optimal threshold is:
+
+`Optimal Threshold = Cost_FP / (Cost_FP + Cost_FN) = $5 / ($5 + $20) = 0.20`
+
+In practice, I'll tune the threshold empirically by:
+1. Plotting the precision-recall curve
+2. Calculating expected profit at each threshold point
+3. Selecting the threshold that maximizes expected profit while respecting operational constraints
+
+**Threshold tuning code approach:**
+```python
+# For each possible threshold
+for threshold in np.arange(0.1, 0.9, 0.05):
+    y_pred = (y_prob >= threshold).astype(int)
+    
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    
+    # Calculate expected profit
+    profit = (tp * 15) - (fp * 5) - (fn * 20)
+    
+    # Track best threshold
+    if profit > best_profit:
+        best_threshold = threshold
+```
+
+#### Beyond Accuracy: Why AUC-ROC and PR-AUC Matter
+
+**The problem with accuracy:**
+
+With 25% cancellation rate, a naive model predicting "won't cancel" for everything achieves 75% accuracy. This makes accuracy a misleading metric for imbalanced problems.
+
+**AUC-ROC (Area Under the ROC Curve):**
+
+The ROC curve plots True Positive Rate (recall) vs. False Positive Rate at various thresholds. AUC-ROC measures the model's ability to distinguish between classes regardless of threshold.
+
+- AUC = 0.5: Model is no better than random guessing
+- AUC = 0.75: Model has good discriminative ability
+- AUC = 1.0: Perfect separation between classes
+
+I target AUC-ROC ≥ 0.75 because:
+1. It's threshold-independent, showing overall model quality
+2. It indicates the model has learned meaningful patterns
+3. It's necessary (but not sufficient) for good business outcomes
+
+**When to use PR-AUC instead:**
+
+For imbalanced datasets, the Precision-Recall AUC is often more informative than ROC-AUC. This is because:
+- ROC-AUC can be optimistically biased when negatives vastly outnumber positives
+- PR-AUC focuses on performance for the minority class (cancellations)
+
+I'll track both, but PR-AUC will be my primary curve for model comparison.
+
+#### Business KPIs vs. Model Metrics: The Translation Layer
+
+Model metrics (recall, precision, AUC) are proxies for what I actually care about: business outcomes. I need to track both and understand how they connect:
+
+| Model Metric | Business KPI | Translation |
+|--------------|--------------|-------------|
+| Recall | Cancellation catch rate | % of cancellations where we had a chance to intervene |
+| Precision | Intervention efficiency | % of interventions that were truly needed |
+| True Positives | Prevented cancellations | Cancellations caught × intervention success rate |
+| Expected Profit | Revenue impact | TP×$15 - FP×$5 - FN×$20 |
+
+**Business KPIs I'll track post-deployment:**
+
+1. **Overall cancellation rate**: Did it decrease from 25%?
+2. **Intervention success rate**: Of flagged bookings where we intervened, what % completed?
+3. **Revenue recovered**: Estimated $ from prevented cancellations
+4. **Customer satisfaction**: NPS scores for customers who received interventions
+5. **Driver utilization**: Reduction in wasted driver time from cancellations
+6. **False alarm rate**: Customer complaints about unnecessary messages
+
+**Monitoring strategy:**
+
+I'll implement a feedback loop where actual outcomes (did the booking complete?) are logged against predictions. This enables:
+- Continuous model performance tracking
+- Detection of model drift over time
+- A/B testing of intervention strategies
+- Refinement of cost assumptions based on real data
+
+#### Summary: My Performance Measurement Framework
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PERFORMANCE HIERARCHY                        │
+├─────────────────────────────────────────────────────────────────┤
+│  BUSINESS OUTCOMES (What I ultimately care about)               │
+│  • Cancellation rate reduction                                  │
+│  • Revenue recovered                                            │
+│  • Customer/driver satisfaction                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  PRIMARY MODEL METRICS (What I optimize for)                    │
+│  • Recall ≥ 70% (catch cancellations)                          │
+│  • Precision ≥ 60% (minimize false alarms)                     │
+│  • F1-Score ≥ 0.65 (balance)                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  DIAGNOSTIC METRICS (What helps me understand the model)        │
+│  • AUC-ROC ≥ 0.75 (discriminative ability)                     │
+│  • PR-AUC (imbalanced performance)                             │
+│  • Confusion matrix (error analysis)                           │
+│  • Calibration curve (probability reliability)                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+This framework ensures I'm measuring what matters, optimizing for business value, and maintaining the diagnostic visibility needed to improve the model over time.
+
+### 1.6 Is the performance measure aligned with the business objective?
 
 **Yes, with the following alignment**:
 
