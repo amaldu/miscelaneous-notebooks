@@ -60,7 +60,7 @@ Here you can find a cost matrix applied to the concrete business scenarios that 
 | True Negative (TN) | Ride is NOT Cancelled & System does NOT intervene | $0 | Normal operation, no action needed |
 | False Negative (FN) | Ride is Cancelled & System does NOT intervene | -$20 cost | Lost booking revenue + customer dissatisfaction + driver wasted time |
 
-**Key insight here: The cost asymmetry is approximately 4:1!**
+**Key insight here: the cost asymmetry is approximately 4:1!**
 
 A missed cancellation (FN) costs $20, while a false alarm (FP) costs $5. This means that I should be willing to accept up to 4 false alarms to catch 1 additional cancellation.
 
@@ -73,7 +73,7 @@ These metrics have trade-offs because:
 - If I want to catch MORE cancellations (increase recall), I will end up catching more false alarms (precision)
 - If I want FEWER false alarms (increase precision), I will end up missing more cancellations (lower recall)
   
-I need to find the right balance—and that balance depends on the **net business costs** of each type of error.
+I need to find the right balance, and that balance depends on the **net business costs** of each type of error.
 
 **Calculations**
 
@@ -92,26 +92,60 @@ So every decision above 20% generates positive value BUT the business value here
 
 *Recall*:
 
-Given the asymmetry in the cost (FN is way more expensive than FP), I will prioritize recall over precision. Having 37.430 cancellations, let's calculate:
+Given the asymmetry in the cost (FN is way more expensive than FP), I will prioritize recall over precision. Having 37.430 cancellations and a defined 60% of precision, let's talk about the constrains applied to this metric:
 
-- At 60% recall: Catch 22,458 → Miss 14,972 → $299,440 in preventable losses
-- At 70% recall: Catch 26,201 → Miss 11,229 → $224,580 in preventable losses
-- At 80% recall: Catch 29,944 → Miss 7,486 → $149,720 in preventable losses
+1. How many interventions can I make?
+   The operational capacity is very important to take into consideration. Let's say we start with a model that can classify 50.000 rides/year as a start point. 
 
-**Deriving the break-even precision:**
+```
+TP = Total interventions x precision = 50.000 x 0.60 = 30.000
+Recall = TP / Real Positives = 30.000 / 37.430 = 0.801 ~ 80%
+```
+With 50.000 interventions/year I can reach around 80% of recall
 
-If I intervene on a predicted cancellation:
-- Expected benefit if correct (probability = precision): Save $20
-- Expected cost if wrong (probability = 1 - precision): Waste $5
+2. What is the minimum ROI required?
+   The project needs to generate enough davings to justify its existence, let's make some calculations:
 
-Break-even occurs when: `Precision × $20 = (1 - Precision) × $5`
+   If the costs of each possible outcome are:
+   - Missed cancellation (FN): $20
+   - False alarm (FP): $5
+   - Success rate of every intevention was set at 50%
 
-Solving: `20P = 5 - 5P` → `25P = 5` → `P = 0.20`
+```Revenue at risk = 37.430 / 20 = 748.600 dollars
+Expected savings = TP x 20 x 0.5 - FP x 5 
 
-**This means any precision above 20% generates positive expected value.** However, I set my minimum at 50% for practical reasons:
-1. Operational capacity: The team can't process unlimited interventions
-2. Customer experience: Too many unnecessary messages annoy customers
-3. Credibility: A system that's wrong half the time loses trust
+    To get FP from precision:
+    FP = TP x (1 - precision)/precision = TP x 0.4/0.6 = TP x 0.667
+
+Then expected savings are:
+Expected savings = TP x 20 x 0.5 - (TP x 0.667) x 5 = TP x 6.67
+
+```
+
+Time to get back to the financial team and decide which is the minimum cost. They say the minimum target is $50.000/ year and the target is $100.000/year:
+
+Minimum savings to be viable:
+```
+TP x 6.67 ≥ 50.000 → TP ≥ 50.000/6.67 = 7.496'25
+Recall = 7.496/ 37.430 = 0.2
+```
+
+Target savings:
+```
+TP x 6.67 ≥ 100.000 → TP ≥ 100.000/6.67 = 14.992'5
+Recall = 14.993/ 37.430 = 0.4
+```
+
+Let's gather all the constrains and their results:
+
+| Constraint | Derived Recall Range | Limiting Factor |
+|------------|---------------------|-----------------|
+| Break-even (minimum useful) | ≥ 20% | Below this, savings don't cover costs |
+| Operational capacity | ≤ 80% | Maximum for 50K interventions with 60% precision |
+| Target ROI | ≥ 40% | Requirement decided by the business |
+
+
+### Final metric targets:
 
 
 
@@ -122,9 +156,10 @@ Solving: `20P = 5 - 5P` → `25P = 5` → `P = 0.20`
 
 
 
-1. Event : Cancellation
-   The customer receives incentive, the company has the reassign the driver wherever he is, 
-Before training any model, I define minimum acceptable recall and precision based on business cost and operational constraints.
+
+
+
+
 **Primary Metrics**:
 
 1. Recall (Sensitivity) % of actual cancellations correctly predicted | ≥ 70% |
